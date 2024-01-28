@@ -14,6 +14,9 @@
 		9680052D2B3A3E3F00050513 /* Combine_Book_CourseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9680052C2B3A3E3F00050513 /* Combine_Book_CourseTests.swift */; };
 		968005372B3A3E3F00050513 /* Combine_Book_CourseUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968005362B3A3E3F00050513 /* Combine_Book_CourseUITests.swift */; };
 		968005392B3A3E3F00050513 /* Combine_Book_CourseUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968005382B3A3E3F00050513 /* Combine_Book_CourseUITestsLaunchTests.swift */; };
+		968005472B3B246500050513 /* PasswordRequirementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968005452B3B239B00050513 /* PasswordRequirementView.swift */; };
+		9680057F2B3F912100050513 /* SignUpFormViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9680057E2B3F912100050513 /* SignUpFormViewModel.swift */; };
+		968005812B3F918E00050513 /* PasswordRequirementModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968005802B3F918E00050513 /* PasswordRequirementModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,6 +47,9 @@
 		968005322B3A3E3F00050513 /* Combine-Book-CourseUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Combine-Book-CourseUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		968005362B3A3E3F00050513 /* Combine_Book_CourseUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Combine_Book_CourseUITests.swift; sourceTree = "<group>"; };
 		968005382B3A3E3F00050513 /* Combine_Book_CourseUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Combine_Book_CourseUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		968005452B3B239B00050513 /* PasswordRequirementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordRequirementView.swift; sourceTree = "<group>"; };
+		9680057E2B3F912100050513 /* SignUpFormViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpFormViewModel.swift; sourceTree = "<group>"; };
+		968005802B3F918E00050513 /* PasswordRequirementModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordRequirementModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -94,6 +100,9 @@
 		9680051A2B3A3E3E00050513 /* Combine-Book-Course */ = {
 			isa = PBXGroup;
 			children = (
+				968005802B3F918E00050513 /* PasswordRequirementModel.swift */,
+				9680057E2B3F912100050513 /* SignUpFormViewModel.swift */,
+				968005452B3B239B00050513 /* PasswordRequirementView.swift */,
 				9680051B2B3A3E3E00050513 /* Combine_Book_CourseApp.swift */,
 				9680051D2B3A3E3E00050513 /* ContentView.swift */,
 				9680051F2B3A3E3F00050513 /* Assets.xcassets */,
@@ -257,7 +266,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				968005812B3F918E00050513 /* PasswordRequirementModel.swift in Sources */,
 				9680051E2B3A3E3E00050513 /* ContentView.swift in Sources */,
+				968005472B3B246500050513 /* PasswordRequirementView.swift in Sources */,
+				9680057F2B3F912100050513 /* SignUpFormViewModel.swift in Sources */,
 				9680051C2B3A3E3E00050513 /* Combine_Book_CourseApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
