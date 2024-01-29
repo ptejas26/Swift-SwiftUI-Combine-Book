@@ -140,8 +140,11 @@ final class SignUpFormViewModel: ObservableObject {
             .debounce(for: 0.4, scheduler: DispatchQueue.main)
             .removeDuplicates()
             .flatMap { username -> AnyPublisher<Bool, Never> in
-            print("$username is \(username)")
-                return self.serviceAuthenticator.checkUserNameAvailable(userName: username)
+                if username.count >= 3 {
+                    return self.serviceAuthenticator.checkUserNameAvailable(userName: username)
+                }
+                return Just(false)
+                    .eraseToAnyPublisher()
             }
             .receive(on: DispatchQueue.main)
             .share()
