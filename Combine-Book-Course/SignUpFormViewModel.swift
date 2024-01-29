@@ -10,6 +10,16 @@ enum PasswordRules: Int {
     case atleast1SpecialChar
 }
 
+enum UserNameValid: Equatable {
+    case valid
+    case inValid(UserNameInvalidReason)
+}
+
+enum UserNameInvalidReason {
+    case tooShort
+    case notAvailable
+}
+
 final class SignUpFormViewModel: ObservableObject {
     
     let serviceAuthenticator = AuthenticationService()
@@ -63,8 +73,8 @@ final class SignUpFormViewModel: ObservableObject {
     
     
     private lazy var isFormValidPublisher: AnyPublisher<Bool, Never> = {
-        Publishers.CombineLatest(isUsernameLengthValidPublisher, isPasswordValidPublisher)
-            .map { $0 && $1 }
+        Publishers.CombineLatest(isUsernameValidPublisher, isPasswordValidPublisher)
+            .map { ($0 == .valid) && $1 }
             .eraseToAnyPublisher()
     }()
     
@@ -113,47 +123,52 @@ final class SignUpFormViewModel: ObservableObject {
             .eraseToAnyPublisher()
     }()
     
-    //    private lazy var passwordPublisher: AnyPublisher<Bool, Never> = {
-    //        $password
-    //            .map { $0.contains { chars in
-    //                chars.isNumber
-    //            } }
-    //            .eraseToAnyPublisher()
-    //    }()
-    
-    // Available username
-    private lazy var isUsernameAvailable: AnyPublisher<Bool, Never> = {
-        $username
-            .print("Username")
-            .flatMap { username -> AnyPublisher<Bool, Never> in
-                self.serviceAuthenticator.checkUserNameAvailable(userName: username)
+    private lazy var passwordSpecialCharPublisher: AnyPublisher<PasswordRuleTuple, Never> = {
+        $password
+            .map {
+                let bool = $0.contains { chars in
+                    specialChar.contains(chars)
+                }
+                return PasswordRuleTuple(PasswordRules.atleast1SpecialChar, bool)
             }
             .eraseToAnyPublisher()
     }()
     
+    // Available username
+    private lazy var isUsernameAvailablePublisher: AnyPublisher<Bool, Never> = {
+        $username
+            .debounce(for: 0.4, scheduler: DispatchQueue.main)
+            .removeDuplicates()
+            .flatMap { username -> AnyPublisher<Bool, Never> in
+            print("$username is \(username)")
+                return self.serviceAuthenticator.checkUserNameAvailable(userName: username)
+            }
+            .receive(on: DispatchQueue.main)
+            .share()
+            .eraseToAnyPublisher()
+    }()
     
     
     init() {
         
-        isUsernameAvailable
-            .receive(on: DispatchQueue.main)
+        Publishers.CombineLatest(isUsernameLengthValidPublisher,    isUsernameAvailablePublisher)
+            .map { (validLength, userNameAvailable) in
+                
+                var msgString = "Great!! username avaiable"
+                if !validLength {
+                    msgString = "Username must be at least three characters!"
+                } else if !userNameAvailable {
+                    msgString = "Username not available, try different one"
+                }
+                return msgString
+            }.assign(to: &$usernameMessage)
+        
+        isUsernameAvailablePublisher
             .assign(to: &$isValid)
-        
-        isUsernameAvailable
-            .receive(on: DispatchQueue.main)
-            .map { value in
-                value ? "" : "Username not available, try different one"
-            }
-            .assign(to: &$usernameMessage)
-        
-        
+            
         isFormValidPublisher
             .assign(to: &$isValid)
-        isUsernameLengthValidPublisher
-            .map {
-                $0 ? "" : "Username must be at least three characters!"
-            }
-            .assign(to: &$usernameMessage)
+        
         
         Publishers.CombineLatest(isPasswordEmptyPublisher, isPasswordMatchingPublisher)
             .map { isPasswordEmpty, isPasswordMatching in
@@ -168,23 +183,49 @@ final class SignUpFormViewModel: ObservableObject {
             }
             .assign(to: &$passwordMessage)
         
+        let publisher = Publishers.CombineLatest(passwordNumberPublisher,passwordSpecialCharPublisher)
+            .eraseToAnyPublisher()
+        
         Publishers.CombineLatest4(
             passwordLengthValidPublisher,
             passwordLowerCharPublisher,
             passwordUpperCharPublisher,
-            passwordNumberPublisher
+            publisher
         )
-//        .print("$$$$ ")
-        .handleEvents(receiveOutput: { lenPub, lowerChar, upperChar, numberPub in
+        .handleEvents(receiveOutput: { lenPub, lowerChar, upperChar, pubisher in
             
             self.requirementArray[lenPub.0.rawValue].validState = lenPub.1
             self.requirementArray[lowerChar.0.rawValue].validState = lowerChar.1
             self.requirementArray[upperChar.0.rawValue].validState = upperChar.1
-            self.requirementArray[numberPub.0.rawValue].validState = numberPub.1
+            
+            publisher.handleEvents(receiveOutput: { numberPublisher, specialCharPublisher in
+                
+                self.requirementArray[numberPublisher.0.rawValue].validState = numberPublisher.1
+                self.requirementArray[specialCharPublisher.0.rawValue].validState = specialCharPublisher.1
+            })
+            .sink (receiveValue: { _ in })
+            .store(in: &self.cancellables)
         })
         .sink (receiveValue: { _ in })
         .store(in: &cancellables)
     }
+    
+    private lazy var isUsernameValidPublisher: AnyPublisher<UserNameValid, Never> = {
+
+        return Publishers.CombineLatest(isUsernameLengthValidPublisher, isUsernameAvailablePublisher)
+            .map { longEnough, available in
+                if !longEnough {
+                    return UserNameValid.inValid(.tooShort)
+                }
+                
+                if !available {
+                    return UserNameValid.inValid(.notAvailable)
+                }
+                return .valid
+            }
+            .share()
+            .eraseToAnyPublisher()
+    }()
 }
 
 class AuthenticationService {
@@ -216,7 +257,6 @@ class AuthenticationService {
                 let decoder = JSONDecoder()
                 let userAvailableMessage = try decoder.decode(UserAvailableModel.self, from: data)
                 completion(.success(userAvailableMessage.isAvailable ?? false))
-                print(userAvailableMessage)
             } catch {
                 completion(.failure(.decodingError(error)))
             }
